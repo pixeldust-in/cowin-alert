@@ -1,0 +1,12 @@
+black
+bandit
+prospector
+ipython
+ipdb
+pre-commit
+isort
+watchdog
+argh
+jupyter
+notebook
+SQLAlchemy
