@@ -18,46 +18,47 @@ def run_fetcher():
         .values_list("pincode", flat=True)
         .distinct()
     )
-    logger.info(f"{pincodes.count()} unique pincode found")
+    # logger.info(f"{pincodes.count()} unique pincode found")
     for pincode in pincodes:
         reponse = CowinApi.search_by_pincode(
             pincode=pincode, date=today.strftime("%d-%m-%Y")
         )
-        logger.info("API reponse recieved for pincode %s", pincode)
+        # logger.info("API reponse recieved for pincode %s", pincode)
 
         data = reponse.json()
         centers = glom(data, "centers", default=[])
 
-        if not centers:
-            return
-
-        logger.info(f"{len(centers)} centers found for pincode {pincode}")
-        # First we save centers then save sessions
-        for center in centers:
-            logger.info(f"{center}")
-
-            try:
-                CowinCenter.objects.get(center_id=center["center_id"])
-            except CowinCenter.DoesNotExist:
-                serializer = serializers.CowinCenterSerializer(data=center)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
-
-            for session in center["sessions"]:
-                session_id = session["session_id"]
-                data = {
-                    **session,
-                    "date": timezone.datetime.strptime(
-                        session["date"], "%d-%m-%Y"
-                    ).date(),
-                    "center": CowinCenter.objects.get(center_id=center["center_id"]).id,
-                }
+        if centers:
+            # logger.info(f"{len(centers)} centers found for pincode {pincode}")
+            # First we save centers then save sessions
+            for center in centers:
+                # logger.info(f"{center}")
                 try:
-                    CowinSession.objects.get(session_id=session_id)
-                except CowinSession.DoesNotExist:
-                    session_serializer = serializers.CowinSessionSerializer(data=data)
-                    session_serializer.is_valid(raise_exception=True)
-                    session_serializer.save()
+                    CowinCenter.objects.get(center_id=center["center_id"])
+                except CowinCenter.DoesNotExist:
+                    serializer = serializers.CowinCenterSerializer(data=center)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+
+                for session in center["sessions"]:
+                    session_id = session["session_id"]
+                    data = {
+                        **session,
+                        "date": timezone.datetime.strptime(
+                            session["date"], "%d-%m-%Y"
+                        ).date(),
+                        "center": CowinCenter.objects.get(
+                            center_id=center["center_id"]
+                        ).id,
+                    }
+                    try:
+                        CowinSession.objects.get(session_id=session_id)
+                    except CowinSession.DoesNotExist:
+                        session_serializer = serializers.CowinSessionSerializer(
+                            data=data
+                        )
+                        session_serializer.is_valid(raise_exception=True)
+                        session_serializer.save()
 
 
 def trigger_alert():
