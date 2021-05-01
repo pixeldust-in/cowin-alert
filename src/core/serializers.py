@@ -8,7 +8,6 @@ class CowinCenterSerializer(serializers.ModelSerializer):
         model = models.CowinCenter
         fields = (
             "id",
-            "data",
             "center_id",
             "pincode",
             "name",

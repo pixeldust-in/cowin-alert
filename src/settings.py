@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     # Thirdpaty
     "django_extensions",
     "rest_framework",
+    "django_celery_results",
+    "django_celery_beat",
     # own,
     "core",
 ]
@@ -264,6 +266,16 @@ CACHES = {
 
 SITE_ID = 1
 AUTH_USER_MODEL = "core.User"
+
+# CELERY Configurations
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_CACHE_BACKEND = "default"
+CELERY_BROKER_URL = REDIS_CONN_STRING
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_SEND_TASK_ERROR_EMAILS = True
+CELERY_TIMEZONE = TIME_ZONE
 
 
 if not DEBUG:

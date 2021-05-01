@@ -13,6 +13,15 @@ class AlertRequestAdmin(admin.ModelAdmin):
 
 class CowinSessionInline(admin.StackedInline):
     model = models.CowinSession
+    readonly_fields = (
+        "session_id",
+        "date",
+        "available_capacity",
+        "min_age_limit",
+        "vaccine",
+        "slots",
+        "created",
+    )
     extra = 0
 
 
@@ -25,6 +34,7 @@ class CowinCenterAdmin(admin.ModelAdmin):
         "district_name",
         "state_name",
         "pincode",
+        "created",
     ]
     readonly_fields = (
         "uuid",

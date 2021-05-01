@@ -34,7 +34,6 @@ class CowinCenter(AbstractBaseSet):
     state_name = models.CharField(max_length=255, null=True, blank=True)
     district_name = models.CharField(max_length=255, null=True, blank=True)
     block_name = models.CharField(max_length=255, null=True, blank=True)
-    data = models.JSONField(default=dict)
 
 
 class CowinSession(AbstractBaseSet):

@@ -56,3 +56,7 @@ stop:
 
 # target: clean_restart - cleans collects and restarts the production servers
 clean_restart: prod_deps migrate collect stop start
+
+
+celery:
+	celery -A src worker -l info --beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
