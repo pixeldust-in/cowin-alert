@@ -1,0 +1,32 @@
+from rest_framework import serializers
+
+from . import models
+
+
+class CowinCenterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.CowinCenter
+        fields = (
+            "id",
+            "data",
+            "center_id",
+            "pincode",
+            "name",
+            "state_name",
+            "district_name",
+            "block_name",
+        )
+
+
+class CowinSessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.CowinSession
+        fields = (
+            "center",
+            "session_id",
+            "date",
+            "available_capacity",
+            "min_age_limit",
+            "vaccine",
+            "slots",
+        )

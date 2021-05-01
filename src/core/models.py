@@ -23,19 +23,25 @@ class AlertRequest(AbstractBaseSet):
         validators=[MaxValueValidator(100), MinValueValidator(18)]
     )
 
+    def __str__(self):
+        return f"from: {self.from_date} - to:{self.to_date}"
+
 
 class CowinCenter(AbstractBaseSet):
     data = models.JSONField(default=dict)
     center_id = models.PositiveIntegerField()
     pincode = models.CharField(max_length=6)
     name = models.CharField(max_length=1024)
+    state_name = models.CharField(max_length=255, null=True, blank=True)
+    district_name = models.CharField(max_length=255, null=True, blank=True)
+    block_name = models.CharField(max_length=255, null=True, blank=True)
 
 
 class CowinSession(AbstractBaseSet):
     center = models.ForeignKey(
         CowinCenter, related_name="sessions", on_delete=models.CASCADE
     )
-    session_id = models.UUIDField(unique=True, editable=False)
+    session_id = models.UUIDField(unique=True)
     date = models.DateField()
     available_capacity = models.CharField(max_length=10, null=True, blank=True)
     min_age_limit = models.CharField(max_length=2, null=True)
