@@ -292,8 +292,9 @@ CELERY_TIMEZONE = TIME_ZONE
 
 
 if not DEBUG:
+    SENTRY_DSN = config("SENTRY_DSN", default="")
     sentry_sdk.init(
-        dsn="",  # TODO: add sentry DSN
+        dsn=SENTRY_DSN,  # TODO: add sentry DSN
         integrations=[DjangoIntegration()],
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
