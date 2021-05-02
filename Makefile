@@ -1,5 +1,6 @@
 .PHONY: all help run collect deps prod_deps migrate sh db start stop status restart clean_restart celery
-APPNAME := cowin-alert
+FILENAME := .appname
+APPNAME := `cat $(FILENAME)`
 
 # target: all - Runs both django and celery if used with -j
 all: run celery
