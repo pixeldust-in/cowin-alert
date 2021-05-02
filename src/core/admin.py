@@ -57,6 +57,16 @@ class CowinSessionAdmin(admin.ModelAdmin):
         "date",
         "available_capacity",
         "min_age_limit",
-        "vaccine",
-        "slots",
+        # "vaccine",
+        # "slots",
+        "get_pincode",
+        # "center_district_name",
     )
+    list_filter = (
+        "date",
+        "center__name",
+        "center__pincode",
+    )
+
+    def get_pincode(self, obj):
+        return obj.center.pincode

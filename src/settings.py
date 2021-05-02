@@ -33,6 +33,19 @@ ADMINS = [
     ("Sandip Baradiya", "sandip@pixeldust.in"),
 ]
 
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = config("EMAIL_HOST", default="localhost")
+EMAIL_PORT = config("EMAIL_PORT", default=2525, cast=int)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="info@pixeldust.in")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = config("FROM_EMAIL", default=None)
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+EMAIL_FROM_NAME = "Cowin Alert"
+EMAIL_SUBJECT_PREFIX = "[Cowin Alert]:"
+
 
 # Application definition
 
@@ -68,7 +81,7 @@ ROOT_URLCONF = "urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [str(Path(BASE_DIR, "src/templates"))],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

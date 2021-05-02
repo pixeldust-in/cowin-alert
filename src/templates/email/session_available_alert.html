@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <table>
+        <tr>
+            <td>
+                <p>Hi {{alert_request.name}}</p>
+                <p>New vaccine sessions are available for your pincode {{alert_request.pincode}}</p>
+            </td>
+        </tr>
+        <tr>
+            <td>center</td>
+            <td>fee_type</td>
+            <td>date</td>
+            <td>available_capacity</td>
+            <td>min_age_limit</td>
+            <td>vaccine</td>
+
+        </tr>
+        {% for session in sessions %}
+
+        <tr>
+                <td> {{ session.center.name }} <br> {{session.center.block_name}} </td>
+                <td> {{ session.center.fee_type }} </td>
+                <td> {{ session.date }} </td>
+                <td> {{ session.available_capacity }} </td>
+                <td> {{ session.min_age_limit }} </td>
+                <td> {{ session.vaccine }} </td>
+
+        </tr>
+        {% endfor %}
+
+    </table>
+</body>
+</html>

@@ -22,6 +22,7 @@ class AlertRequest(AbstractBaseSet):
     age = models.PositiveIntegerField(
         validators=[MaxValueValidator(100), MinValueValidator(18)]
     )
+    alerts_enabled = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.name} - from: {self.from_date} - to:{self.to_date}"

@@ -3,7 +3,7 @@ from django.utils import timezone
 from glom import glom
 
 from celery_app import app
-from core import serializers
+from core import email, serializers
 from core.models import AlertRequest, CowinCenter, CowinSession
 from core.services.cowin import CowinApi
 
@@ -11,6 +11,7 @@ logger = get_task_logger(__name__)
 
 
 def save_sessions(center_id, sessions):
+    sessions_ids = []
     for session in sessions:
         if session["available_capacity"] > 0:
             session_id = session["session_id"]
@@ -25,13 +26,18 @@ def save_sessions(center_id, sessions):
                 session_serializer = serializers.CowinSessionSerializer(data=data)
                 session_serializer.is_valid(raise_exception=True)
                 session_serializer.save()
+                sessions_ids.append(session_id)
+
+    return sessions_ids
 
 
 @app.task(bind=True, retry_kwargs={"max_retries": 2})
 def fetch_cowin(self):
     today = timezone.localdate()
     pincodes = (
-        AlertRequest.objects.filter(from_date__lte=today, to_date__gte=today)
+        AlertRequest.objects.filter(
+            from_date__lte=today, to_date__gte=today, alerts_enabled=True
+        )
         .order_by()
         .values_list("pincode", flat=True)
         .distinct()
@@ -46,6 +52,8 @@ def fetch_cowin(self):
         data = reponse.json()
         centers = glom(data, "centers", default=[])
 
+        created_session_ids = []
+
         if centers:
             logger.info(f"{len(centers)} centers found for pincode {pincode}")
             # First we save centers then save sessions
@@ -57,24 +65,43 @@ def fetch_cowin(self):
                     serializer.is_valid(raise_exception=True)
                     serializer.save()
 
-                save_sessions(center["center_id"], center["sessions"])
+                session_ids = save_sessions(center["center_id"], center["sessions"])
+                created_session_ids.extend(session_ids)
+
+        # we have pincode session
+        sessions = CowinSession.objects.filter(session_id__in=created_session_ids)
+        if sessions.exists():
+            minimum_age = min([int(session.min_age_limit) for session in sessions])
+            alert_requests = AlertRequest.objects.filter(
+                pincode=pincode,
+                from_date__lte=today,
+                to_date__gte=today,
+                age__gte=minimum_age,
+                alerts_enabled=True,
+            )
+            if alert_requests.exists():
+                qualifying_alert_ids = [item.id for item in alert_requests]
+                send_alert.delay(qualifying_alert_ids, created_session_ids)
 
 
 @app.task(bind=True, retry_kwargs={"max_retries": 2})
-def trigger_alert(self, alert_id, session_id):
-    logger.info("Starting trigger_alert for %s task %s", alert_id, session_id)
+def send_alert(self, qualifying_alert_ids, session_ids):
+    logger.info(f"send_alert {qualifying_alert_ids} {session_ids}")
 
-
-@app.task(bind=True, retry_kwargs={"max_retries": 2})
-def handle_session_create(self, session_id):
-    # TODO: figure out login of how to club and send a single alert and not multiple alerts
-    session = CowinSession.objects.get(id=session_id)
-    matched_alert_requests = AlertRequest.objects.filter(
-        pincode=session.center.pincode,
-        from_date__lte=session.date,
-        to_date__gte=session.date,
-        age__gte=session.min_age_limit,
-    )
-    if matched_alert_requests.exists():
-        for alert in matched_alert_requests:
-            trigger_alert.delay(alert.id, session_id)
+    alert_requests = AlertRequest.objects.filter(id__in=qualifying_alert_ids)
+    sessions = CowinSession.objects.filter(session_id__in=session_ids)
+    for alert_req in alert_requests:
+        pincode = alert_req.pincode
+        matching_sessions = sessions.filter(
+            center__pincode=pincode,
+        )
+        context = {
+            "alert_request": alert_req,
+            "sessions": matching_sessions,
+        }
+        email.send_mass_individual_mail(
+            recipient_list=[alert_req.email],
+            subject=f"New CoWin session available for pincode {pincode}",
+            context=context,
+            template="email/session_available_alert.html",
+        )
