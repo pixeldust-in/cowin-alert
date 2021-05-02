@@ -8,39 +8,33 @@ help:
 
 # target: run - Runs a dev server on localhost:8000
 run:
-	manage runserver
+	poetry run ./src/manage.py runserver
 
 
 # target: collect - calls the "collectstatic" django command
 collect:
-	manage collectstatic --no-input
+	poetry run ./src/manage.py collectstatic --no-input
 
 # target: deps - install dependencies from requirements file
 deps:
-	pip install -U pip setuptools
-	pip install -r requirements.txt
-	pip install -r dev-requirements.txt
-	cd src && pip install -e .
+	poetry install
 
 
 # target: production deps - install dependencies from requirements file
 prod_deps:
-	pip install -U pip setuptools
-	pip install -r requirements.txt
-	cd src && pip install -e .
-
+	poetry install --no-dev
 
 # target: migrate - migrate the database
 migrate:
-	manage migrate
+	poetry run ./src/manage.py migrate
 
 # target: sh - open django extension's shell plus
 sh:
-	manage shell_plus
+	poetry run ./src/manage.py shell_plus
 
 # target: db - open django DB shell
 db:
-	manage dbshell
+	poetry run ./src/manage.py dbshell
 
 
 # target: start - start the production servers
@@ -59,4 +53,4 @@ clean_restart: prod_deps migrate collect stop start
 
 
 celery:
-	celery -A src worker -l info --beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
+	cd src && celery -A celery_app worker -l info --beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
