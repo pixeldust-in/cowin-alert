@@ -263,6 +263,7 @@ REST_FRAMEWORK = {
 # Caching config
 REDIS_CONN_STRING = config("REDIS_CONN_STRING", default="redis://localhost:6379")
 REDIS_CACHE_STORE = config("REDIS_CACHE_STORE", cast=int, default=0)
+REDIS_BROKER_STORE = config("REDIS_BROKER_STORE", cast=int, default=1)
 
 
 CACHES = {
@@ -282,7 +283,7 @@ AUTH_USER_MODEL = "core.User"
 # CELERY Configurations
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_CACHE_BACKEND = "default"
-CELERY_BROKER_URL = REDIS_CONN_STRING
+CELERY_BROKER_URL = f"{REDIS_CONN_STRING}/{REDIS_BROKER_STORE}"
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
@@ -291,8 +292,9 @@ CELERY_TIMEZONE = TIME_ZONE
 
 
 if not DEBUG:
+    SENTRY_DSN = config("SENTRY_DSN", default="")
     sentry_sdk.init(
-        dsn="",  # TODO: add sentry DSN
+        dsn=SENTRY_DSN,  # TODO: add sentry DSN
         integrations=[DjangoIntegration()],
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
