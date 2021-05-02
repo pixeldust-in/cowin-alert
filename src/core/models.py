@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.urls import reverse_lazy
 
 from .mixins import AbstractBaseSet
 
@@ -26,6 +27,9 @@ class AlertRequest(AbstractBaseSet):
         self.alerts_enabled = False
         self.save()
 
+    def get_unsubscribe_url(self):
+        return reverse_lazy("core:unsubscribe", kwargs={"uuid": self.uuid})
+
 
 class CowinCenter(AbstractBaseSet):
     center_id = models.PositiveIntegerField()
@@ -48,8 +52,16 @@ class CowinSession(AbstractBaseSet):
     slots = models.JSONField(default=dict)
 
 
-class Feedback(AbstractBaseSet):
-    alert_request = models.OneToOneField(
-        AlertRequest, on_delete=models.CASCADE, related_name="feedback"
+class SessionAlertMap(AbstractBaseSet):
+    alert_request = models.ForeignKey(
+        AlertRequest, on_delete=models.CASCADE, related_name="alerts_sent"
     )
-    feedback = models.TextField()
+    session = models.ForeignKey(
+        CowinSession, on_delete=models.CASCADE, related_name="alerts_sent"
+    )
+
+    class Meta:
+        unique_together = (
+            "alert_request",
+            "session",
+        )

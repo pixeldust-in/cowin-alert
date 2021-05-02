@@ -1,13 +1,21 @@
 from celery.utils.log import get_task_logger
+from django.contrib.sites.models import Site
 from django.utils import timezone
 from glom import glom
 
 from celery_app import app
 from core import email, serializers
-from core.models import AlertRequest, CowinCenter, CowinSession
+from core.models import AlertRequest, CowinCenter, CowinSession, SessionAlertMap
 from core.services.cowin import CowinApi
 
 logger = get_task_logger(__name__)
+
+
+def build_domain_url(path=None):
+    url = f"https://{Site.objects.get_current().domain}"
+    if not path:
+        return f"{url}/"
+    return f"{url}{path}"
 
 
 def save_sessions(center_id, sessions):
@@ -26,7 +34,8 @@ def save_sessions(center_id, sessions):
                 session_serializer = serializers.CowinSessionSerializer(data=data)
                 session_serializer.is_valid(raise_exception=True)
                 session_serializer.save()
-                sessions_ids.append(session_id)
+
+            sessions_ids.append(session_id)
 
     return sessions_ids
 
@@ -92,16 +101,30 @@ def send_alert(self, qualifying_alert_ids, session_ids):
     sessions = CowinSession.objects.filter(session_id__in=session_ids)
     for alert_req in alert_requests:
         pincode = alert_req.pincode
+        session_ids_already_notified = [
+            item.session_id
+            for item in SessionAlertMap.objects.filter(alert_request_id=alert_req.id)
+        ]
         matching_sessions = sessions.filter(
             center__pincode=pincode,
-        )
-        context = {
-            "alert_request": alert_req,
-            "sessions": matching_sessions,
-        }
-        email.send_mass_individual_mail(
-            recipient_list=[alert_req.email],
-            subject=f"New CoWin session available for pincode {pincode}",
-            context=context,
-            template="email/session_available_alert.html",
-        )
+        ).exclude(id__in=session_ids_already_notified)
+        if matching_sessions.exists():
+            context = {
+                "alert_request": alert_req,
+                "sessions": matching_sessions,
+                "unsubscribe_url": build_domain_url(alert_req.get_unsubscribe_url()),
+            }
+            email.send_mass_individual_mail(
+                recipient_list=[alert_req.email],
+                subject=f"New CoWin session available for pincode {pincode}",
+                context=context,
+                template="email/session_available_alert.html",
+            )
+            SessionAlertMap.objects.bulk_create(
+                [
+                    SessionAlertMap(
+                        session_id=session.id, alert_request_id=alert_req.id
+                    )
+                    for session in matching_sessions
+                ]
+            )
