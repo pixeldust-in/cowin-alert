@@ -1,15 +1,20 @@
-.PHONY: help run collect deps migrate freeze
-APPNAME := cowin_alert
+.PHONY: all help run collect deps prod_deps migrate sh db start stop restart clean_restart celery
+APPNAME := cowin-alert
+
+# target: all - Runs both django and celery if used with -j
+all: run celery
 
 # target: help - Display callable targets.
 help:
 	@egrep "^# target:" [Mm]akefile
 
-
 # target: run - Runs a dev server on localhost:8000
 run:
 	poetry run ./src/manage.py runserver
 
+# target: celery - run a celery worker and beat scheduler
+celery:
+	cd src && watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A celery_app worker -l info --beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
 
 # target: collect - calls the "collectstatic" django command
 collect:
@@ -48,9 +53,8 @@ start:
 stop:
 	sudo supervisorctl stop $(APPNAME):*
 
+# target: restart - starts and stops the production servers
+restart: stop start
+
 # target: clean_restart - cleans collects and restarts the production servers
 clean_restart: prod_deps migrate collect stop start
-
-
-celery:
-	cd src && celery -A celery_app worker -l info --beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
