@@ -44,9 +44,7 @@ def save_sessions(center_id, sessions):
 def fetch_cowin(self):
     today = timezone.localdate()
     pincodes = (
-        AlertRequest.objects.filter(
-            from_date__lte=today, to_date__gte=today, alerts_enabled=True
-        )
+        AlertRequest.objects.get_for_today()
         .order_by()
         .values_list("pincode", flat=True)
         .distinct()
@@ -77,16 +75,12 @@ def fetch_cowin(self):
                 session_ids = save_sessions(center["center_id"], center["sessions"])
                 created_session_ids.extend(session_ids)
 
-        # we have pincode session
-        sessions = CowinSession.objects.filter(session_id__in=created_session_ids)
+        sessions = CowinSession.objects.filter(
+            session_id__in=created_session_ids, min_age_limit__lt=50
+        )
         if sessions.exists():
-            minimum_age = min([int(session.min_age_limit) for session in sessions])
-            alert_requests = AlertRequest.objects.filter(
+            alert_requests = AlertRequest.objects.get_for_today().filter(
                 pincode=pincode,
-                from_date__lte=today,
-                to_date__gte=today,
-                age__gte=minimum_age,
-                alerts_enabled=True,
             )
             if alert_requests.exists():
                 qualifying_alert_ids = [item.id for item in alert_requests]
@@ -97,13 +91,17 @@ def fetch_cowin(self):
 def send_alert(self, qualifying_alert_ids, session_ids):
     logger.info(f"send_alert {qualifying_alert_ids} {session_ids}")
 
-    alert_requests = AlertRequest.objects.filter(id__in=qualifying_alert_ids)
-    sessions = CowinSession.objects.filter(session_id__in=session_ids)
+    alert_requests = AlertRequest.objects.prefetch_related("alerts_sent").filter(
+        id__in=qualifying_alert_ids
+    )
+
+    sessions = CowinSession.objects.prefetch_related("center").filter(
+        session_id__in=session_ids
+    )
     for alert_req in alert_requests:
         pincode = alert_req.pincode
         session_ids_already_notified = [
-            item.session_id
-            for item in SessionAlertMap.objects.filter(alert_request_id=alert_req.id)
+            item.session_id for item in alert_req.alerts_sent.all()
         ]
         matching_sessions = sessions.filter(
             center__pincode=pincode,
@@ -112,11 +110,12 @@ def send_alert(self, qualifying_alert_ids, session_ids):
             context = {
                 "alert_request": alert_req,
                 "sessions": matching_sessions,
+                "pincode": pincode,
                 "unsubscribe_url": build_domain_url(alert_req.get_unsubscribe_url()),
             }
             email.send_mass_individual_mail(
                 recipient_list=[alert_req.email],
-                subject=f"New CoWin session available for pincode {pincode}",
+                subject=f"CoWin vaccine available for pincode {pincode}",
                 context=context,
                 template="email/session_available_alert.html",
             )

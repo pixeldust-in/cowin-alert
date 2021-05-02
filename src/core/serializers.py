@@ -38,6 +38,5 @@ class AlertRequestSerializer(serializers.ModelSerializer):
             "email",
             "from_date",
             "to_date",
-            "age",
             "pincode",
         )

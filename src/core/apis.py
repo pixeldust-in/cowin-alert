@@ -32,3 +32,8 @@ def unsubscribe(request, uuid):
         for entry in additional_entries:
             entry.unsubscribe()
     return render(request, "unsubscribed.html")
+
+
+# def email(request):
+#     sessions = CowinSession.objects.all()
+#     return render(request, "email/session_available_alert.html", {"sessions":sessions})

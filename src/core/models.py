@@ -1,8 +1,8 @@
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse_lazy
 
+from .managers import AlertRequestManager
 from .mixins import AbstractBaseSet
 
 
@@ -15,10 +15,9 @@ class AlertRequest(AbstractBaseSet):
     from_date = models.DateField()
     to_date = models.DateField()
     pincode = models.CharField(max_length=6)
-    age = models.PositiveIntegerField(
-        validators=[MaxValueValidator(100), MinValueValidator(18)]
-    )
     alerts_enabled = models.BooleanField(default=True)
+
+    objects = AlertRequestManager.as_manager()
 
     def __str__(self):
         return f"from: {self.from_date} - to:{self.to_date} - Pincode: {self.pincode}"
