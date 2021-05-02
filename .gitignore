@@ -133,3 +133,6 @@ dmypy.json
 # Docker storage
 postgres
 redis
+
+# Custom
+assets/
