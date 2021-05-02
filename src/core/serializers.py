@@ -29,3 +29,15 @@ class CowinSessionSerializer(serializers.ModelSerializer):
             "vaccine",
             "slots",
         )
+
+
+class AlertRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.AlertRequest
+        fields = (
+            "email",
+            "from_date",
+            "to_date",
+            "age",
+            "pincode",
+        )

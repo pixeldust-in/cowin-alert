@@ -2,7 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from . import validators
 from .mixins import AbstractBaseSet
 
 
@@ -11,13 +10,9 @@ class User(AbstractUser, AbstractBaseSet):
 
 
 class AlertRequest(AbstractBaseSet):
-    name = models.CharField(max_length=255)
     email = models.EmailField()
     from_date = models.DateField()
     to_date = models.DateField()
-    mobile = models.CharField(
-        validators=[validators.mobile_validator], max_length=10, null=True, blank=True
-    )
     pincode = models.CharField(max_length=6)
     age = models.PositiveIntegerField(
         validators=[MaxValueValidator(100), MinValueValidator(18)]
@@ -25,7 +20,11 @@ class AlertRequest(AbstractBaseSet):
     alerts_enabled = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.name} - from: {self.from_date} - to:{self.to_date}"
+        return f"from: {self.from_date} - to:{self.to_date} - Pincode: {self.pincode}"
+
+    def unsubscribe(self):
+        self.alerts_enabled = False
+        self.save()
 
 
 class CowinCenter(AbstractBaseSet):
@@ -47,3 +46,10 @@ class CowinSession(AbstractBaseSet):
     min_age_limit = models.CharField(max_length=2, null=True)
     vaccine = models.CharField(max_length=255, null=True, blank=True)
     slots = models.JSONField(default=dict)
+
+
+class Feedback(AbstractBaseSet):
+    alert_request = models.OneToOneField(
+        AlertRequest, on_delete=models.CASCADE, related_name="feedback"
+    )
+    feedback = models.TextField()

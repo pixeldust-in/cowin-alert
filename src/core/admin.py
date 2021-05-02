@@ -8,7 +8,7 @@ from . import models
 @admin.register(models.AlertRequest)
 class AlertRequestAdmin(admin.ModelAdmin):
     list_display = [field.name for field in models.AlertRequest._meta.fields]
-    search_fields = ["name", "mobile", "email"]
+    search_fields = ["email", "uuid", "pincode"]
 
 
 class CowinSessionInline(admin.StackedInline):
