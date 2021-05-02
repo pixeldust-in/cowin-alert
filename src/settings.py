@@ -64,11 +64,13 @@ INSTALLED_APPS = [
     "django_celery_beat",
     # own,
     "core",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -279,6 +281,21 @@ CACHES = {
 
 SITE_ID = 1
 AUTH_USER_MODEL = "core.User"
+CORS_ALLOWED_ORIGINS = [
+    "https://cowin-alerts.pixeldust.app",
+]
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
 
 # CELERY Configurations
 CELERY_RESULT_BACKEND = "django-db"
