@@ -1,4 +1,4 @@
-.PHONY: all help run collect deps prod_deps migrate sh db start stop restart clean_restart celery
+.PHONY: all help run collect deps prod_deps migrate sh db start stop status restart clean_restart celery
 APPNAME := cowin-alert
 
 # target: all - Runs both django and celery if used with -j
@@ -52,6 +52,10 @@ start:
 # target: stop - stops the production servers
 stop:
 	sudo supervisorctl stop $(APPNAME):*
+
+# target: status - status of the supervisor services
+status:
+	sudo supervisorctl status $(APPNAME):*
 
 # target: restart - starts and stops the production servers
 restart: stop start
