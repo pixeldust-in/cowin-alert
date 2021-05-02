@@ -136,3 +136,4 @@ redis
 
 # Custom
 assets/
+.appname
