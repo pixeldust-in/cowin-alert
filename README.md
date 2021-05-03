@@ -15,7 +15,7 @@ If you used `poetry shell` you can do `exit` to exit the shell or just do `deact
 
 To run your scripts either activate the virtual env or run them with poetry
 ```bash
-poetry run ./src/manage.py shell_plus
+poetry run ./manage.py shell_plus
 ```
 If you want to add a package in the environment do either of these depending whether its a dev dependency or not:
 ```bash
