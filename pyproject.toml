@@ -40,6 +40,7 @@ bandit = "^1.7.0"
 pre-commit = "^2.12.1"
 ipdb = "^0.13.7"
 watchdog = "^2.0.3"
+argh = "^0.26.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
