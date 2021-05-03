@@ -27,7 +27,7 @@ class AlertRequest(AbstractBaseSet):
         self.save()
 
     def get_unsubscribe_url(self):
-        return reverse_lazy("core:unsubscribe", kwargs={"uuid": self.uuid})
+        return reverse_lazy("src.core:unsubscribe", kwargs={"uuid": self.uuid})
 
 
 class CowinCenter(AbstractBaseSet):
