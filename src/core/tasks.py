@@ -1,11 +1,12 @@
 from celery.utils.log import get_task_logger
 from django.contrib.sites.models import Site
+from django.template.loader import render_to_string
 from django.utils import timezone
 from glom import glom
 
 from src.celery_app import app
 from src.core import serializers
-from src.core.email import send_mass_individual_mail
+from src.core.email import send_mail_tuples
 from src.core.models import AlertRequest, CowinCenter, CowinSession, SessionAlertMap
 from src.core.services.cowin import CowinApi
 
@@ -89,7 +90,7 @@ def fetch_cowin(self):
 
 
 @app.task(bind=True, retry_kwargs={"max_retries": 2})
-def send_alert(self, qualifying_alert_ids, session_ids):
+def send_alert(self, qualifying_alert_ids, session_ids):  # noqa
     logger.info(f"send_alert {qualifying_alert_ids} {session_ids}")
 
     alert_requests = AlertRequest.objects.prefetch_related("alerts_sent").filter(
@@ -99,6 +100,7 @@ def send_alert(self, qualifying_alert_ids, session_ids):
     sessions = CowinSession.objects.prefetch_related("center").filter(
         session_id__in=session_ids
     )
+    datatuple = []
     for alert_req in alert_requests:
         pincode = alert_req.pincode
         session_ids_already_notified = [
@@ -114,12 +116,29 @@ def send_alert(self, qualifying_alert_ids, session_ids):
                 "pincode": pincode,
                 "unsubscribe_url": build_domain_url(alert_req.get_unsubscribe_url()),
             }
-            send_mass_individual_mail(
-                recipient_list=[alert_req.email],
-                subject=f"CoWin vaccine available for pincode {pincode}",
-                context=context,
-                template="email/session_available_alert.html",
+            subject = f"CoWin vaccine available for pincode {pincode}"
+            html_content = render_to_string(
+                template_name="email/session_available_alert.html", context=context
             )
+            from_email = None
+            recipient_list = [alert_req.email]
+            attachments = []
+
+            datatuple.append(
+                (
+                    subject,
+                    html_content,
+                    from_email,
+                    recipient_list,
+                    attachments,
+                )
+            )
+
+            if len(datatuple) > 500:
+                logger.info("Sending out 500 mails in the wild.")
+                send_mail_tuples(datatuple=datatuple)
+                datatuple.clear()
+
             SessionAlertMap.objects.bulk_create(
                 [
                     SessionAlertMap(
@@ -128,3 +147,9 @@ def send_alert(self, qualifying_alert_ids, session_ids):
                     for session in matching_sessions
                 ]
             )
+
+    remaining_size = len(datatuple)
+    if remaining_size > 0:
+        # Clear out any remaining mails
+        logger.info(f"Sending out {remaining_size} mails in the wild.")
+        send_mail_tuples(datatuple)
