@@ -77,7 +77,7 @@ def fetch_cowin(self):
                 created_session_ids.extend(session_ids)
 
         sessions = CowinSession.objects.filter(
-            session_id__in=created_session_ids, min_age_limit__lt=50
+            session_id__in=created_session_ids, min_age_limit__lt=45
         )
         if sessions.exists():
             alert_requests = AlertRequest.objects.get_for_today().filter(
