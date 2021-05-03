@@ -23,3 +23,12 @@ poetry add requests
 # OR
 poetry add --dev black
 ```
+
+## Create new app in the project
+To create a new app in the project, do the following:
+```
+mkdir src/appname
+poetry run ./manage.py startapp appname src/appname
+```
+Go to file `src/appname/apps.py` and change the attribute `MainConfig.name` from `"appname"` to `"src.appname"`.
+Now you can configure the app in `INSTALLED_APPS` in settings file as `"src.appname"`
