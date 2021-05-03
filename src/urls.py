@@ -22,5 +22,5 @@ admin.site.site_header = "COWIN Alerts administration"
 
 urlpatterns = [
     path("super-manager/", admin.site.urls),
-    path("", include("core.urls")),
+    path("", include("src.core.urls")),
 ]

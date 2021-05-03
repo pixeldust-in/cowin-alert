@@ -11,15 +11,15 @@ help:
 
 # target: run - Runs a dev server on localhost:8000
 run:
-	poetry run ./src/manage.py runserver
+	poetry run ./manage.py runserver
 
 # target: celery - run a celery worker and beat scheduler
 celery:
-	cd src && watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A celery_app worker -l info --beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
+	watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A src.celery_app worker -l info --beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
 
 # target: collect - calls the "collectstatic" django command
 collect:
-	poetry run ./src/manage.py collectstatic --no-input
+	poetry run ./manage.py collectstatic --no-input
 
 # target: deps - install dependencies from requirements file
 deps:
@@ -32,15 +32,15 @@ prod_deps:
 
 # target: migrate - migrate the database
 migrate:
-	poetry run ./src/manage.py migrate
+	poetry run ./manage.py migrate
 
 # target: sh - open django extension's shell plus
 sh:
-	poetry run ./src/manage.py shell_plus
+	poetry run ./manage.py shell_plus
 
 # target: db - open django DB shell
 db:
-	poetry run ./src/manage.py dbshell
+	poetry run ./manage.py dbshell
 
 
 # target: start - start the production servers

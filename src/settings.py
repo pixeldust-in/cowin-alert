@@ -63,7 +63,7 @@ INSTALLED_APPS = [
     "django_celery_results",
     "django_celery_beat",
     # own,
-    "core",
+    "src.core",
     "corsheaders",
 ]
 
@@ -78,7 +78,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "urls"
+ROOT_URLCONF = "src.urls"
 
 TEMPLATES = [
     {
@@ -96,7 +96,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "wsgi.application"
+WSGI_APPLICATION = "src.wsgi.application"
 
 
 # Database
@@ -182,14 +182,14 @@ AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
 if USE_S3_STORAGE:
     STATICFILES_DIRS = [Path(BASE_DIR, "static")]
     AWS_LOCATION = config("AWS_STATIC_LOCATION", default="assets", cast=str)
-    STATICFILES_STORAGE = "core.storage_backends.PublicStaticStorage"
+    STATICFILES_STORAGE = "src.core.storage_backends.PublicStaticStorage"
     STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
     AWS_IS_GZIPPED = True
     AWS_PUBLIC_MEDIA_LOCATION = "media/public"
     DEFAULT_FILE_STORAGE = "core.storage_backends.PublicMediaStorage"
 
     AWS_PRIVATE_MEDIA_LOCATION = "media/private"
-    PRIVATE_FILE_STORAGE = "core.storage_backends.PrivateMediaStorage"
+    PRIVATE_FILE_STORAGE = "src.core.storage_backends.PrivateMediaStorage"
 
 #  Logging
 LOGGING_CONFIG = None

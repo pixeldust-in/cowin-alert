@@ -3,10 +3,11 @@ from django.contrib.sites.models import Site
 from django.utils import timezone
 from glom import glom
 
-from celery_app import app
-from core import email, serializers
-from core.models import AlertRequest, CowinCenter, CowinSession, SessionAlertMap
-from core.services.cowin import CowinApi
+from src.celery_app import app
+from src.core import serializers
+from src.core.email import send_mass_individual_mail
+from src.core.models import AlertRequest, CowinCenter, CowinSession, SessionAlertMap
+from src.core.services.cowin import CowinApi
 
 logger = get_task_logger(__name__)
 
@@ -113,7 +114,7 @@ def send_alert(self, qualifying_alert_ids, session_ids):
                 "pincode": pincode,
                 "unsubscribe_url": build_domain_url(alert_req.get_unsubscribe_url()),
             }
-            email.send_mass_individual_mail(
+            send_mass_individual_mail(
                 recipient_list=[alert_req.email],
                 subject=f"CoWin vaccine available for pincode {pincode}",
                 context=context,
