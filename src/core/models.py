@@ -45,7 +45,7 @@ class CowinSession(AbstractBaseSet):
     )
     session_id = models.UUIDField(unique=True)
     date = models.DateField()
-    available_capacity = models.CharField(max_length=10, null=True, blank=True)
+    available_capacity = models.CharField(max_length=100, null=True, blank=True)
     min_age_limit = models.CharField(max_length=2, null=True)
     vaccine = models.CharField(max_length=255, null=True, blank=True)
     slots = models.JSONField(default=dict)
