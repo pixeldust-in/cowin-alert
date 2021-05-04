@@ -23,6 +23,7 @@ class CowinApi:
                     f"""
                     COWIN API Status code {response.status_code} recieved!
                     response: {response.json()}
+                    pincode: {pincode}
                 """
                 )
             return response

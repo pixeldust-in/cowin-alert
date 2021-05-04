@@ -30,7 +30,8 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
 
 ADMINS = [
-    ("Sandip Baradiya", "sandip@pixeldust.in"),
+    # TODO: GROT
+    ("Sandip Baradiya", "sandip+cowin-alerts@pixeldust.in"),
 ]
 
 EMAIL_BACKEND = config(
@@ -306,6 +307,7 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_SEND_TASK_ERROR_EMAILS = True
 CELERY_TIMEZONE = TIME_ZONE
+CELERY_ACKS_LATE = True
 
 
 if not DEBUG:
