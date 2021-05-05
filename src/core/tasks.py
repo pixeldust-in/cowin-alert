@@ -1,4 +1,6 @@
+from functools import reduce
 from json.decoder import JSONDecodeError
+from operator import iconcat
 from time import sleep
 
 from celery.utils.log import get_task_logger
@@ -79,6 +81,18 @@ def process_pincode(self, data, pincode):
 
 @app.task(bind=True)
 def fetch_cowin(self):
+    inspect_response = app.control.inspect().active()
+    # We get a dictionary of values with dictionary here which we flatten out into a list of dictionaries
+    active_tasks = [
+        d.get("name", None)
+        for d in reduce(iconcat, list(inspect_response.values()), [])
+    ]
+    logger.info(f"{self.name}")
+
+    if self.name in active_tasks:
+        logger.info("Task already running. Skipping this run.")
+        return True
+
     pincodes = (
         AlertRequest.objects.get_for_today()
         .order_by()
@@ -120,6 +134,8 @@ def fetch_cowin(self):
                     sleep(DELAY_DURATION)
 
         sleep(0.2)
+
+    return True
 
 
 @app.task(bind=True)
