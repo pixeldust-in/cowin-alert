@@ -98,10 +98,11 @@ def fetch_cowin(self):
             process_pincode.delay(data, pincode)
             logger.info(f"Scheduled task for pincode: {pincode}")
         except JSONDecodeError:
+            DELAY_DURATION = 90
             logger.info(
-                f"API failed while processing pincode: {pincode}, {i=}. Retrying in 3 mins."
+                f"API failed while processing pincode: {pincode}, {i=}. Retrying in {DELAY_DURATION}s."
             )
-            sleep(180)
+            sleep(DELAY_DURATION)
             reponse = CowinApi.search_by_pincode(
                 pincode=pincode, date=today.strftime("%d-%m-%Y")
             )
@@ -110,7 +111,7 @@ def fetch_cowin(self):
             data = reponse.json()
             process_pincode.delay(data, pincode)
 
-        sleep(2)
+        sleep(0.5)
 
 
 @app.task(bind=True)
