@@ -132,6 +132,9 @@ def fetch_cowin(self):
                         f"Aww shucks its no working will have to wait again folks: {pincode}, {i=}, {j=}. Retrying in {DELAY_DURATION}s."
                     )
                     sleep(DELAY_DURATION)
+            else:
+                logger.info("Exiting because of too many errors.")
+                return False
 
         sleep(0.2)
 
