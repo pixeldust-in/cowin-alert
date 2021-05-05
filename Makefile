@@ -15,7 +15,7 @@ run:
 
 # target: celery - run a celery worker and beat scheduler
 celery:
-	watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A src.celery_app worker -l info --beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
+	poetry run watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A src.celery_app worker -l info --beat --scheduler django_celery_beat.schedulers:DatabaseScheduler
 
 # target: collect - calls the "collectstatic" django command
 collect:
