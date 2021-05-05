@@ -95,7 +95,7 @@ def fetch_cowin(self):
     for pincode in pincodes:
         process_pincode.delay(pincode)
         logger.info(f"Scheduled task for pincode: {pincode}")
-        sleep(1)
+        sleep(0.5)
 
 
 @app.task(bind=True, retry_kwargs={"max_retries": 2})
