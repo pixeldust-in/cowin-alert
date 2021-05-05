@@ -87,9 +87,8 @@ def fetch_cowin(self):
         d.get("name", None)
         for d in reduce(iconcat, list(inspect_response.values()), [])
     ]
-    logger.info(f"{self.name}")
 
-    if self.name in active_tasks:
+    if active_tasks.count(self.name) > 1:
         logger.info("Task already running. Skipping this run.")
         return True
 
