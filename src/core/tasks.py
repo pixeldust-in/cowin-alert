@@ -1,3 +1,5 @@
+from time import sleep
+
 from celery.utils.log import get_task_logger
 from django.contrib.sites.models import Site
 from django.template.loader import render_to_string
@@ -43,8 +45,46 @@ def save_sessions(center_id, sessions):
 
 
 @app.task(bind=True, retry_kwargs={"max_retries": 2})
-def fetch_cowin(self):
+def process_pincode(self, pincode):
     today = timezone.localdate()
+    reponse = CowinApi.search_by_pincode(
+        pincode=pincode, date=today.strftime("%d-%m-%Y")
+    )
+    logger.info("API reponse recieved for pincode %s", pincode)
+
+    data = reponse.json()
+    centers = glom(data, "centers", default=[])
+
+    created_session_ids = []
+
+    if centers:
+        logger.info(f"{len(centers)} centers found for pincode {pincode}")
+        # First we save centers then save sessions
+        for center in centers:
+            try:
+                CowinCenter.objects.get(center_id=center["center_id"])
+            except CowinCenter.DoesNotExist:
+                serializer = serializers.CowinCenterSerializer(data=center)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+            session_ids = save_sessions(center["center_id"], center["sessions"])
+            created_session_ids.extend(session_ids)
+
+    sessions = CowinSession.objects.filter(
+        session_id__in=created_session_ids, min_age_limit__lt=45
+    )
+    if sessions.exists():
+        alert_requests = AlertRequest.objects.get_for_today().filter(
+            pincode=pincode,
+        )
+        if alert_requests.exists():
+            qualifying_alert_ids = [item.id for item in alert_requests]
+            send_alert.delay(qualifying_alert_ids, created_session_ids)
+
+
+@app.task(bind=True, retry_kwargs={"max_retries": 2})
+def fetch_cowin(self):
     pincodes = (
         AlertRequest.objects.get_for_today()
         .order_by()
@@ -53,40 +93,9 @@ def fetch_cowin(self):
     )
     logger.info(f"{pincodes.count()} unique pincode found")
     for pincode in pincodes:
-        reponse = CowinApi.search_by_pincode(
-            pincode=pincode, date=today.strftime("%d-%m-%Y")
-        )
-        logger.info("API reponse recieved for pincode %s", pincode)
-
-        data = reponse.json()
-        centers = glom(data, "centers", default=[])
-
-        created_session_ids = []
-
-        if centers:
-            logger.info(f"{len(centers)} centers found for pincode {pincode}")
-            # First we save centers then save sessions
-            for center in centers:
-                try:
-                    CowinCenter.objects.get(center_id=center["center_id"])
-                except CowinCenter.DoesNotExist:
-                    serializer = serializers.CowinCenterSerializer(data=center)
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save()
-
-                session_ids = save_sessions(center["center_id"], center["sessions"])
-                created_session_ids.extend(session_ids)
-
-        sessions = CowinSession.objects.filter(
-            session_id__in=created_session_ids, min_age_limit__lt=45
-        )
-        if sessions.exists():
-            alert_requests = AlertRequest.objects.get_for_today().filter(
-                pincode=pincode,
-            )
-            if alert_requests.exists():
-                qualifying_alert_ids = [item.id for item in alert_requests]
-                send_alert.delay(qualifying_alert_ids, created_session_ids)
+        process_pincode.delay(pincode)
+        logger.info(f"Scheduled task for pincode: {pincode}")
+        sleep(0.5)
 
 
 @app.task(bind=True, retry_kwargs={"max_retries": 2})
