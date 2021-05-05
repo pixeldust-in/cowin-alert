@@ -1,3 +1,4 @@
+from json.decoder import JSONDecodeError
 from time import sleep
 
 from celery.utils.log import get_task_logger
@@ -44,15 +45,8 @@ def save_sessions(center_id, sessions):
     return sessions_ids
 
 
-@app.task(bind=True, retry_kwargs={"max_retries": 2})
-def process_pincode(self, pincode):
-    today = timezone.localdate()
-    reponse = CowinApi.search_by_pincode(
-        pincode=pincode, date=today.strftime("%d-%m-%Y")
-    )
-    logger.info("API reponse recieved for pincode %s", pincode)
-
-    data = reponse.json()
+@app.task(bind=True)
+def process_pincode(self, data, pincode):
     centers = glom(data, "centers", default=[])
 
     created_session_ids = []
@@ -83,7 +77,7 @@ def process_pincode(self, pincode):
             send_alert.delay(qualifying_alert_ids, created_session_ids)
 
 
-@app.task(bind=True, retry_kwargs={"max_retries": 2})
+@app.task(bind=True)
 def fetch_cowin(self):
     pincodes = (
         AlertRequest.objects.get_for_today()
@@ -92,13 +86,34 @@ def fetch_cowin(self):
         .distinct()
     )
     logger.info(f"{pincodes.count()} unique pincode found")
-    for pincode in pincodes:
-        process_pincode.delay(pincode)
-        logger.info(f"Scheduled task for pincode: {pincode}")
-        sleep(0.5)
+    for i, pincode in enumerate(pincodes):
+        today = timezone.localdate()
+        try:
+            reponse = CowinApi.search_by_pincode(
+                pincode=pincode, date=today.strftime("%d-%m-%Y")
+            )
+            logger.info(f"{i=}, API reponse recieved for pincode {pincode}")
+
+            data = reponse.json()
+            process_pincode.delay(data, pincode)
+            logger.info(f"Scheduled task for pincode: {pincode}")
+        except JSONDecodeError:
+            logger.info(
+                f"API failed while processing pincode: {pincode}, {i=}. Retrying in 3 mins."
+            )
+            sleep(180)
+            reponse = CowinApi.search_by_pincode(
+                pincode=pincode, date=today.strftime("%d-%m-%Y")
+            )
+            logger.info(f"{i=}, API reponse recieved for pincode {pincode}")
+
+            data = reponse.json()
+            process_pincode.delay(data, pincode)
+
+        sleep(2)
 
 
-@app.task(bind=True, retry_kwargs={"max_retries": 2})
+@app.task(bind=True)
 def send_alert(self, qualifying_alert_ids, session_ids):  # noqa
     logger.info(f"send_alert {qualifying_alert_ids} {session_ids}")
 
