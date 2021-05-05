@@ -32,6 +32,7 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 ADMINS = [
     # TODO: GROT
     ("Sandip Baradiya", "sandip+cowin-alerts@pixeldust.in"),
+    ("Siddharth Pant", "sid+cowin-alerts@pixeldust.in"),
 ]
 
 EMAIL_BACKEND = config(
