@@ -1,3 +1,5 @@
+from time import sleep
+
 from celery.utils.log import get_task_logger
 from django.contrib.sites.models import Site
 from django.template.loader import render_to_string
@@ -92,6 +94,8 @@ def fetch_cowin(self):
     logger.info(f"{pincodes.count()} unique pincode found")
     for pincode in pincodes:
         process_pincode.delay(pincode)
+        logger.info(f"Scheduled task for pincode: {pincode}")
+        sleep(1)
 
 
 @app.task(bind=True, retry_kwargs={"max_retries": 2})
