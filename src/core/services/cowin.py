@@ -22,7 +22,7 @@ class CowinApi:
                 logger.exception(
                     f"""
                     COWIN API Status code {response.status_code} recieved!
-                    response: {response.json()}
+                    response: {response.text}
                     pincode: {pincode}
                 """
                 )
