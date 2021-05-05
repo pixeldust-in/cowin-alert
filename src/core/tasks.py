@@ -103,7 +103,7 @@ def fetch_cowin(self):
                 f"API failed while processing pincode: {pincode}, {i=}. Retrying in {DELAY_DURATION}s."
             )
             sleep(DELAY_DURATION)
-            for i in range(0, 3):
+            for j in range(0, 3):
                 try:
                     reponse = CowinApi.search_by_pincode(
                         pincode=pincode, date=today.strftime("%d-%m-%Y")
@@ -115,7 +115,7 @@ def fetch_cowin(self):
                     break
                 except Exception:
                     logger.info(
-                        f"Aww shucks its no working will have to wait again folks: {pincode}, {i=}. Retrying in {DELAY_DURATION}s."
+                        f"Aww shucks its no working will have to wait again folks: {pincode}, {i=}, {j=}. Retrying in {DELAY_DURATION}s."
                     )
                     sleep(DELAY_DURATION)
 
