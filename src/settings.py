@@ -14,9 +14,10 @@ import logging.config
 import os
 from pathlib import Path
 
-import sentry_sdk
+# import sentry_sdk
 from decouple import Csv, config
-from sentry_sdk.integrations.django import DjangoIntegration
+
+# from sentry_sdk.integrations.django import DjangoIntegration
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -28,11 +29,6 @@ SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=True, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
-
-ADMINS = [
-    # TODO: GROT
-    ("Siddharth Pant", "sid+cowin-alerts@pixeldust.in"),
-]
 
 EMAIL_BACKEND = config(
     "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
@@ -221,18 +217,21 @@ LOGGING = {
             "formatter": "verbose",
             "filters": ["request_id"],
         },
-        "mail_admins_custom": {
-            "level": "ERROR",
-            "filters": ["require_debug_false", "request_id"],
-            "class": "django.utils.log.AdminEmailHandler",
-            "include_html": True,
-            "formatter": "verbose",
-        },
+        # "mail_admins_custom": {
+        #     "level": "ERROR",
+        #     "filters": ["require_debug_false", "request_id"],
+        #     "class": "django.utils.log.AdminEmailHandler",
+        #     "include_html": True,
+        #     "formatter": "verbose",
+        # },
     },
     "loggers": {
         "": {
             "level": config("LOG_LEVEL", default="INFO"),
-            "handlers": ["console", "mail_admins_custom"],
+            # "handlers": ["console", "mail_admins_custom"],
+            "handlers": [
+                "console",
+            ],
             "propagate": False,
         },
     },
@@ -310,16 +309,16 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_ACKS_LATE = True
 
 
-if not DEBUG:
-    SENTRY_DSN = config("SENTRY_DSN", default="")
-    sentry_sdk.init(
-        dsn=SENTRY_DSN,  # TODO: add sentry DSN
-        integrations=[DjangoIntegration()],
-        # Set traces_sample_rate to 1.0 to capture 100%
-        # of transactions for performance monitoring.
-        # We recommend adjusting this value in production.
-        traces_sample_rate=1.0,
-        # If you wish to associate users to errors (assuming you are using
-        # django.contrib.auth) you may enable sending PII data.
-        send_default_pii=True,
-    )
+# if not DEBUG:
+#     SENTRY_DSN = config("SENTRY_DSN", default="")
+#     sentry_sdk.init(
+#         dsn=SENTRY_DSN,  # TODO: add sentry DSN
+#         integrations=[DjangoIntegration()],
+#         # Set traces_sample_rate to 1.0 to capture 100%
+#         # of transactions for performance monitoring.
+#         # We recommend adjusting this value in production.
+#         traces_sample_rate=1.0,
+#         # If you wish to associate users to errors (assuming you are using
+#         # django.contrib.auth) you may enable sending PII data.
+#         send_default_pii=True,
+#     )
