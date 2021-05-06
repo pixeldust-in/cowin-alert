@@ -35,4 +35,4 @@ repos:
         entry: poetry run prospector
         language: system
         args: [--messages-only, --output-format=pylint]
-        exclude: (.*/migrations/.*)$
+        exclude: (.*/migrations/.*|.env.example|.pre-commit-config.yaml)$

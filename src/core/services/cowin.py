@@ -1,23 +1,20 @@
 import logging
 
 import requests
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 
 class CowinApi:
-    api_endpoint = (
-        "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByPin"
-    )
+    api_endpoint = settings.COWIN_API_URL
 
     @classmethod
     def search_by_pincode(cls, pincode, date=None):
         "date: DD-MM-YYYY"
         try:
             payload = {}
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
-            }
+            headers = {}
             url = f"{cls.api_endpoint}?pincode={pincode}&date={date}"
             response = requests.request("GET", url, headers=headers, data=payload)
             if response.status_code != 200:
