@@ -1,34 +1,38 @@
 repos:
--   repo: https://github.com/psf/black
+  - repo: https://github.com/psf/black
     rev: 20.8b1
     hooks:
-    -   id: black
+      - id: black
         exclude: (.*/scripts/.*|.*/migrations/.*)$
--   repo: git://github.com/pre-commit/pre-commit-hooks
+  - repo: git://github.com/pre-commit/pre-commit-hooks
     rev: v2.4.0
     hooks:
-    -   id: trailing-whitespace
+      - id: trailing-whitespace
         exclude: \.(css|ts|tsx|bck|csv)$
-    -   id: check-merge-conflict
-    -   id: check-json
-    -   id: debug-statements
-    -   id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-json
+      - id: debug-statements
+      - id: check-added-large-files
         args: [--maxkb=550]
--   repo: https://github.com/pycqa/isort
+  - repo: https://github.com/pycqa/isort
     rev: 5.7.0
     hooks:
       - id: isort
         args: ["--profile", "black", "--filter-files"]
         exclude: (.*/scripts/.*|.*/migrations/.*)$
--   repo: https://github.com/PyCQA/bandit
-    rev: 1.6.2
+  - repo: local
     hooks:
-    - id: bandit
-      args: [--format=txt, --quiet]
--   repo: https://github.com/PyCQA/prospector
-    rev: 1.2.0
+      - id: bandit
+        name: bandit
+        entry: poetry run bandit
+        args: [--format=txt, --quiet]
+        language: system
+        exclude: (.*/migrations/.*)$
+  - repo: local
     hooks:
-    -   id: prospector
+      - id: prospector
+        name: prospector
+        entry: poetry run prospector
         language: system
         args: [--messages-only, --output-format=pylint]
         exclude: (.*/migrations/.*)$
