@@ -135,7 +135,7 @@ def fetch_cowin(self):
                 logger.info("Exiting because of too many errors.")
                 return False
 
-        sleep(0.2)
+        sleep(3.2)
 
     return True
 

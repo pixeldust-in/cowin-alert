@@ -15,7 +15,9 @@ class CowinApi:
         "date: DD-MM-YYYY"
         try:
             payload = {}
-            headers = {}
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+            }
             url = f"{cls.api_endpoint}?pincode={pincode}&date={date}"
             response = requests.request("GET", url, headers=headers, data=payload)
             if response.status_code != 200:
